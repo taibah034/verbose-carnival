@@ -2,7 +2,7 @@ name: Build clo
 on: workflow_dispatch
 jobs:
   build:
-    runs-on: windows-2025
+    runs-on: windows-2022
     timeout-minutes: 9999
     steps:
       - name: Initialize Workspace
