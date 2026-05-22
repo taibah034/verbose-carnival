@@ -1,0 +1,102 @@
+name: Mac Live Screen Access
+on: workflow_dispatch
+
+jobs:
+  live-screen:
+    runs-on: macos-14
+    timeout-minutes: 9999
+
+    steps:
+      - name: Create Admin & Enable SSH
+        run: |
+          NEW_USER="sysoperator"
+          NEW_PASS="MacTest1234!"
+          sudo sysadminctl -addUser $NEW_USER -fullName "SysOperator" -password "$NEW_PASS" -admin
+          sudo systemsetup -setremotelogin on || true
+
+      - name: Start Live Screenshot Server
+        run: |
+          # স্ক্রিনশট রাখার ফোল্ডার তৈরি
+          mkdir -p /Users/runner/Screenshots
+          cd /Users/runner/Screenshots
+          
+          # পাইথন সার্ভার চালু করা (পোর্ট 8000)
+          nohup python3 -m http.server 8000 > /dev/null 2>&1 &
+          
+          # প্রতি ২ সেকেন্ড পর পর স্ক্রিনশট নেওয়ার লুপ (ব্যাকগ্রাউন্ডে চলবে)
+          cat << 'EOF' > loop.sh
+          while true; do
+            screencapture -x /Users/runner/Screenshots/live.jpg
+            sleep 2
+          done
+          EOF
+          chmod +x loop.sh
+          nohup ./loop.sh > /dev/null 2>&1 &
+          
+          echo "Live Server Started Successfully!"
+
+      # ==================== নতুন ৫টা ধাপ (Fail হলে স্কিপ করবে) ====================
+      - name: Create Random Cache Files
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/RandomCacheData
+          for i in {1..5}; do
+            rand_name=$(openssl rand -hex 8)
+            echo "Cache entry $i: $(date)" > "/tmp/RandomCacheData/${rand_name}.cache"
+          done
+
+      - name: Create Random Dump Files
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/RandomDump
+          for i in {1..5}; do
+            rand_name=$(openssl rand -hex 8)
+            echo "Dump data $i: $(date)" > "/tmp/RandomDump/${rand_name}.dmp"
+          done
+
+      - name: Create Random Backup Files
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/RandomBackup
+          for i in {1..5}; do
+            rand_name=$(openssl rand -hex 8)
+            echo "Backup log $i: $(date)" > "/tmp/RandomBackup/${rand_name}.bak"
+          done
+
+      - name: Create Random Sync Logs
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/RandomSync
+          for i in {1..5}; do
+            rand_name=$(openssl rand -hex 8)
+            echo "Sync process $i: success" > "/tmp/RandomSync/${rand_name}.sync"
+          done
+
+      - name: Create Random Temp Data Files
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/RandomTempData
+          for i in {1..5}; do
+            rand_name=$(openssl rand -hex 8)
+            echo "Temp metrics $i: $RANDOM" > "/tmp/RandomTempData/${rand_name}.tdata"
+          done
+      # ============================================================================
+
+      - name: Start Ngrok Tunnel
+        run: |
+          echo "---------------------------------------------------"
+          echo "Downloading Ngrok Client..."
+          echo "---------------------------------------------------"
+          curl -sL -o ngrok.zip https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-darwin-arm64.zip
+          unzip ngrok.zip
+          chmod +x ngrok
+          
+          echo "Authenticating Ngrok..."
+          # আপনার দেওয়া AuthToken দিয়ে কনফিগার করা হচ্ছে
+          ./ngrok config add-authtoken 2ee1vtdFDWD7moit1P3yGMutfgv_7SgxCvXQzq4puNXVNCTnX
+          
+          echo "Starting Ngrok TCP Tunnel on Port 22..."
+          echo "Please check your Ngrok Dashboard (https://dashboard.ngrok.com/endpoints/status) to get the SSH Host and Port."
+          
+          # Ngrok চালু করা হচ্ছে (এটি ফোরগ্রাউন্ডে চলবে, তাই কানেকশন ড্রপ হবে না)
+          ./ngrok tcp 22
