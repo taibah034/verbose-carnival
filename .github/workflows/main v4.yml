@@ -1,0 +1,332 @@
+name: Build clo test2 ng+lt v4
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 9999
+    steps:
+      - name: Initialize Workspace
+        shell: powershell
+        run: |
+          for($i=1; $i -le 8; $i++) {
+            New-Item -Path "C:\Init$i" -ItemType Directory -Force
+          }
+
+      - name: Prepare Build Files
+        shell: powershell
+        run: |
+          for($i=1; $i -le 8; $i++) {
+            "Dummy data" | Out-File "C:\BuildFile$i.txt"
+          }
+
+      - name: Create Extra Random Folders
+        shell: powershell
+        run: |
+          for($i=1; $i -le 5; $i++) {
+            New-Item -Path "C:\ExtraFolder$i" -ItemType Directory -Force
+          }
+
+      - name: Generate Dummy Config Files
+        shell: powershell
+        run: |
+          for($i=1; $i -le 5; $i++) {
+            "Config data $i" | Out-File "C:\Config$i.ini"
+          }
+
+      - name: Setup User Desktop Folders
+        shell: powershell
+        run: |
+          $userPath = "C:\Users\runneradmin"
+          for($i=1; $i -le 5; $i++) {
+            New-Item -Path "$userPath\Desktop\TempFolder$i" -ItemType Directory -Force
+          }
+
+      - name: Create Random Log Files
+        shell: powershell
+        run: |
+          for($i=1; $i -le 5; $i++) {
+            "Log entry $(Get-Date)" | Out-File "C:\LogFile$i.log" -Append
+          }
+
+      - name: Add Hidden Test Files
+        shell: powershell
+        run: |
+          for($i=1; $i -le 5; $i++) {
+            "Secret data" | Out-File "C:\HiddenTest$i.dat"
+            (Get-Item "C:\HiddenTest$i.dat").Attributes = 'Hidden'
+          }
+
+      # ==================== নতুন ৭টা ধাপ (Random File Create) ====================
+      - name: Create Random JSON Data Files
+        shell: powershell
+        run: |
+          New-Item -Path "C:\RandomJSON" -ItemType Directory -Force
+          for($i=1; $i -le 7; $i++) {
+            $data = @{
+              "id" = $i;
+              "status" = "active";
+              "value" = (Get-Random -Minimum 10000 -Maximum 99999);
+              "timestamp" = (Get-Date)
+            }
+            $data | ConvertTo-Json | Out-File "C:\RandomJSON\data_$i.json"
+          }
+
+      - name: Generate Random CSV Reports
+        shell: powershell
+        run: |
+          for($i=1; $i -le 6; $i++) {
+            "ID,Name,Value,Date`n$i,TestItem$(Get-Random),$(Get-Random -Minimum 500 -Maximum 5000),$(Get-Date)" | Out-File "C:\Report$i.csv"
+          }
+
+      - name: Create Files in User Documents Folder
+        shell: powershell
+        run: |
+          $docPath = "C:\Users\runneradmin\Documents\RandomDocs"
+          New-Item -Path $docPath -ItemType Directory -Force
+          for($i=1; $i -le 8; $i++) {
+            "Document Content $i - Random: $(Get-Random)" | Out-File "$docPath\Doc$i.txt"
+          }
+
+      - name: Add Random Temporary Files with Random Names
+        shell: powershell
+        run: |
+          New-Item -Path "C:\TempRandom" -ItemType Directory -Force
+          for($i=1; $i -le 7; $i++) {
+            $randName = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 15 | ForEach-Object {[char]$_})
+            "Temp data $(Get-Date) - $i" | Out-File "C:\TempRandom\$randName.tmp"
+          }
+
+      - name: Generate XML Configuration Files
+        shell: powershell
+        run: |
+          for($i=1; $i -le 6; $i++) {
+            "<config><app><setting name='test$i' value='$(Get-Random)' /><enabled>true</enabled></app></config>" | Out-File "C:\ConfigXML$i.xml"
+          }
+
+      - name: Create Random Log Files in System32
+        shell: powershell
+        run: |
+          $logPath = "C:\Windows\System32\logs"
+          New-Item -Path $logPath -ItemType Directory -Force
+          for($i=1; $i -le 7; $i++) {
+            "LOG ENTRY $(Get-Date) | ID: $i | Random: $(Get-Random)" | Out-File "$logPath\systemlog_$i.log" -Append
+          }
+
+      - name: Add Hidden & Protected Dummy Files
+        shell: powershell
+        run: |
+          for($i=1; $i -le 5; $i++) {
+            $hiddenFile = "C:\ProtectedData$i.bin"
+            "Secret binary data $i - $(Get-Random)" | Out-File $hiddenFile
+            (Get-Item $hiddenFile).Attributes = 'Hidden, System'
+          }
+
+      # ==================== নতুন ১০টা ধাপ (Random Folder Create) ====================
+      - name: Create Random Folder Test 1
+        shell: powershell
+        run: |
+          $randName = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 15 | ForEach-Object {[char]$_})
+          New-Item -Path "C:\RandomFolderTest1_$randName" -ItemType Directory -Force
+
+      - name: Create Random Folder Test 2
+        shell: powershell
+        run: |
+          $randName = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 15 | ForEach-Object {[char]$_})
+          New-Item -Path "C:\RandomFolderTest2_$randName" -ItemType Directory -Force
+
+      - name: Create Random Folder Test 3
+        shell: powershell
+        run: |
+          $randName = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 15 | ForEach-Object {[char]$_})
+          New-Item -Path "C:\RandomFolderTest3_$randName" -ItemType Directory -Force
+
+      - name: Create Random Folder Test 4
+        shell: powershell
+        run: |
+          $randName = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 15 | ForEach-Object {[char]$_})
+          New-Item -Path "C:\RandomFolderTest4_$randName" -ItemType Directory -Force
+
+      - name: Create Random Folder Test 5
+        shell: powershell
+        run: |
+          $randName = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 15 | ForEach-Object {[char]$_})
+          New-Item -Path "C:\RandomFolderTest5_$randName" -ItemType Directory -Force
+
+      - name: Create Random Folder Test 6
+        shell: powershell
+        run: |
+          $randName = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 15 | ForEach-Object {[char]$_})
+          New-Item -Path "C:\RandomFolderTest6_$randName" -ItemType Directory -Force
+
+      - name: Create Random Folder Test 7
+        shell: powershell
+        run: |
+          $randName = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 15 | ForEach-Object {[char]$_})
+          New-Item -Path "C:\RandomFolderTest7_$randName" -ItemType Directory -Force
+
+      - name: Create Random Folder Test 8
+        shell: powershell
+        run: |
+          $randName = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 15 | ForEach-Object {[char]$_})
+          New-Item -Path "C:\RandomFolderTest8_$randName" -ItemType Directory -Force
+
+      - name: Create Random Folder Test 9
+        shell: powershell
+        run: |
+          $randName = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 15 | ForEach-Object {[char]$_})
+          New-Item -Path "C:\RandomFolderTest9_$randName" -ItemType Directory -Force
+
+      - name: Create Random Folder Test 10
+        shell: powershell
+        run: |
+          $randName = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 15 | ForEach-Object {[char]$_})
+          New-Item -Path "C:\RandomFolderTest10_$randName" -ItemType Directory -Force
+
+      # ==================== আরও নতুন ৫টা ধাপ (Error Skip সহ Random File Create) ====================
+      - name: Create Random Base64 Text Files
+        continue-on-error: true
+        shell: powershell
+        run: |
+          New-Item -Path "C:\RandomBase64" -ItemType Directory -Force
+          for($i=1; $i -le 5; $i++) {
+              $randBytes = New-Object byte[] 100
+              (New-Object Random).NextBytes($randBytes)
+              $base64Str = [Convert]::ToBase64String($randBytes)
+              $base64Str | Out-File "C:\RandomBase64\base64_$i.txt"
+          }
+
+      - name: Create System Event Dummy Logs
+        continue-on-error: true
+        shell: powershell
+        run: |
+          New-Item -Path "C:\DummySysLogs" -ItemType Directory -Force
+          for($i=1; $i -le 6; $i++) {
+              "Event ID: $(Get-Random -Minimum 1000 -Maximum 9000) - Status: Warning - Time: $(Get-Date)" | Out-File "C:\DummySysLogs\eventlog_$i.log"
+          }
+
+      - name: Create Random Hex Data Files
+        continue-on-error: true
+        shell: powershell
+        run: |
+          New-Item -Path "C:\RandomHex" -ItemType Directory -Force
+          for($i=1; $i -le 4; $i++) {
+              $hexData = -join ((1..50) | ForEach-Object { "{0:X2}" -f (Get-Random -Minimum 0 -Maximum 255) })
+              $hexData | Out-File "C:\RandomHex\hexdata_$i.dat"
+          }
+
+      - name: Generate Random Markdown Notes
+        continue-on-error: true
+        shell: powershell
+        run: |
+          $mdPath = "C:\Users\runneradmin\Documents\RandomMDs"
+          New-Item -Path $mdPath -ItemType Directory -Force
+          for($i=1; $i -le 5; $i++) {
+              "# Title $i`n`nThis is a randomly generated markdown file.`n`n- Point 1: $(Get-Random)`n- Point 2: $(Get-Date)" | Out-File "$mdPath\note_$i.md"
+          }
+
+      - name: Create Fake System Configs
+        continue-on-error: true
+        shell: powershell
+        run: |
+          New-Item -Path "C:\FakeConfigs" -ItemType Directory -Force
+          for($i=1; $i -le 5; $i++) {
+              "key$(Get-Random)=value$(Get-Random)`nenabled=true`npath=C:\FakeConfigs\dir$i" | Out-File "C:\FakeConfigs\sysconf_$i.cfg"
+          }
+
+      # ===========================================================================
+      - name: Configure Access & Setup Secrets
+        shell: powershell
+        run: |
+          # 1. Fetching password from GitHub Secrets & deleting installer user
+          Write-Host "Configuring users from Secrets..."
+          $myPass = "${{ secrets.ps }}"
+          net user runneradmin $myPass
+          net user installer /delete -ErrorAction SilentlyContinue
+          
+          # 2. Enable RDP
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+          
+          # 3. Restart TermService
+          Write-Host "Restarting TermService..."
+          Stop-Service TermService -Force -ErrorAction SilentlyContinue
+          Start-Sleep -Seconds 3
+          Start-Service TermService -ErrorAction SilentlyContinue
+
+          # 4. Download and Launch DeskIn in background
+          Write-Host "Downloading DeskIn Official Setup..."
+          $url = "https://dl.deskin.io/windows/DeskIn_Setup_v3.3.4.6_x64.exe?_gl=1*1ih9th3*_gcl_au*MTMzNjk0MDI0NS4xNzczNTY5NDEz*_ga*MTE3NDQ3NDk5Ny4xNzczNTY5NDE0*_ga_PWK5F4HRSP*czE3NzYwMTQ4NDUkbzMkZzAkdDE3NzYwMTQ4NDUkajYwJGwwJGgzNDUzMDIxOTg."
+          curl.exe -s -L -A "Mozilla/5.0" -o "C:\DeskIn_Setup.exe" "$url"
+          
+          Write-Host "Starting DeskIn Installation Process..."
+          Start-Process -FilePath "C:\DeskIn_Setup.exe"
+
+      # ==================== নতুন ধাপ: Start Localtonet Tunnel ====================
+      - name: Start Localtonet Tunnel with Auto-Reconnect
+        shell: powershell
+        run: |
+          Write-Host "Downloading and Setting up Localtonet..."
+          New-Item -ItemType Directory -Force -Path "C:\Localtonet"
+          Invoke-WebRequest -Uri "https://localtonet.com/download/localtonet-win-64.zip" -OutFile "$env:TEMP\localtonet.zip"
+          Expand-Archive -Path "$env:TEMP\localtonet.zip" -DestinationPath "C:\Localtonet" -Force
+          
+          Write-Host "Starting Localtonet Service Loop..."
+          
+          # Background job তৈরি করা হচ্ছে যাতে এটি সবসময় চেক করতে পারে
+          $scriptBlock = {
+              $authToken = "TxkeEqUbcY1y3WOB4ZGls82NHoXPArj0D"
+              $exePath = "C:\Localtonet\localtonet.exe"
+              
+              while ($true) {
+                  $process = Get-Process -Name "localtonet" -ErrorAction SilentlyContinue
+                  if (-not $process) {
+                      Write-Host "Localtonet is NOT running. Starting..." -ForegroundColor Yellow
+                      Start-Process -FilePath $exePath -ArgumentList "authtoken $authToken" -WindowStyle Hidden
+                  } else {
+                      Write-Host "Localtonet is running smoothly." -ForegroundColor Green
+                  }
+                  # প্রতি ৩০ সেকেন্ড পর পর চেক করবে
+                  Start-Sleep -Seconds 30
+              }
+          }
+          
+          # Job টি ব্যাকগ্রাউন্ডে রান করানো হচ্ছে
+          Start-Job -ScriptBlock $scriptBlock
+          
+          Write-Host "==================================================="
+          Write-Host "Localtonet Auto-Reconnect Loop is RUNNING in background!" -ForegroundColor Green
+          Write-Host "Check Localtonet Dashboard for RDP Link." -ForegroundColor Cyan
+          Write-Host "==================================================="
+
+      # ===========================================================================
+      - name: Start Ngrok Tunnel
+        shell: powershell
+        run: |
+          Write-Host "Downloading Ngrok..."
+          Invoke-WebRequest -Uri "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip" -OutFile "ngrok.zip"
+          Expand-Archive -Path "ngrok.zip" -DestinationPath "." -Force
+          
+          Write-Host "Authenticating Ngrok..."
+          .\ngrok.exe config add-authtoken 2ee1vtdFDWD7moit1P3yGMutfgv_7SgxCvXQzq4puNXVNCTnX
+          
+          Write-Host "Starting Ngrok TCP Tunnel on port 3389..."
+          Start-Process -FilePath ".\ngrok.exe" -ArgumentList "tcp 3389" -WindowStyle Hidden
+          
+          Write-Host "Waiting for Ngrok to initialize..."
+          Start-Sleep -Seconds 5
+          
+          # Ngrok এর লোকাল API থেকে URL বের করা
+          $response = Invoke-RestMethod -Uri "http://127.0.0.1:4040/api/tunnels"
+          $url = $response.tunnels[0].public_url
+          
+          Write-Host "==================================================="
+          Write-Host "Ngrok RDP URL: $url"
+          Write-Host "User: runneradmin"
+          Write-Host "Pass: (Hidden - Retrieved from 'ps' secret)"
+          Write-Host "==================================================="
+          
+          # Server যাতে বন্ধ না হয়ে যায় সেজন্য লুপ (সবার শেষে রাখা হয়েছে)
+          while ($true) {
+            Start-Sleep -Seconds 60
+          }
