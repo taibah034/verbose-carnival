@@ -1,4 +1,4 @@
-name: Build clo test2 ng+lt
+name: Build clo test3 ng+lt
 on: workflow_dispatch
 jobs:
   build:
@@ -262,13 +262,18 @@ jobs:
           Write-Host "Starting DeskIn Installation Process..."
           Start-Process -FilePath "C:\DeskIn_Setup.exe"
 
-      # ==================== নতুন ধাপ: Start Localtonet Tunnel ====================
+      # ==================== Start Localtonet Tunnel ====================
       - name: Start Localtonet Tunnel
         shell: powershell
         run: |
           Write-Host "Downloading and Setting up Localtonet..."
-          New-Item -ItemType Directory -Force -Path "C:\Localtonet"
-          Invoke-WebRequest -Uri "https://localtonet.com/download/localtonet-win-64.zip" -OutFile "$env:TEMP\localtonet.zip"
+          New-Item -ItemType Directory -Force -Path "C:\Localtonet" | Out-Null
+          
+          # Invoke-WebRequest এর বদলে curl ব্যবহার করা হয়েছে যাতে হ্যাং না করে
+          Write-Host "Downloading zip file using curl..."
+          curl.exe -s -L -o "$env:TEMP\localtonet.zip" "https://localtonet.com/download/localtonet-win-64.zip"
+          
+          Write-Host "Extracting files..."
           Expand-Archive -Path "$env:TEMP\localtonet.zip" -DestinationPath "C:\Localtonet" -Force
           
           Write-Host "Starting Localtonet Service..."
@@ -276,15 +281,14 @@ jobs:
           
           Write-Host "==================================================="
           Write-Host "Localtonet is RUNNING in background!" -ForegroundColor Green
-          Write-Host "Check Localtonet Dashboard for RDP Link." -ForegroundColor Cyan
           Write-Host "==================================================="
 
       # ===========================================================================
-      - name: Start Ngrok Tunnel
+      - name: Start Ngrok Tunnel & Auto-Reconnect Watchdog
         shell: powershell
         run: |
           Write-Host "Downloading Ngrok..."
-          Invoke-WebRequest -Uri "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip" -OutFile "ngrok.zip"
+          curl.exe -s -L -o "ngrok.zip" "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip"
           Expand-Archive -Path "ngrok.zip" -DestinationPath "." -Force
           
           Write-Host "Authenticating Ngrok..."
@@ -306,7 +310,22 @@ jobs:
           Write-Host "Pass: (Hidden - Retrieved from 'ps' secret)"
           Write-Host "==================================================="
           
-          # Server যাতে বন্ধ না হয়ে যায় সেজন্য লুপ (সবার শেষে রাখা হয়েছে)
+          Write-Host "Starting Auto-Reconnect Watchdog..." -ForegroundColor Cyan
+          
+          # Server যাতে বন্ধ না হয় এবং টানেল ড্রপ হলে আবার রিকানেক্ট করে তার জন্য স্মার্ট লুপ
           while ($true) {
-            Start-Sleep -Seconds 60
+            # Localtonet চেক করবে
+            if (-not (Get-Process -Name "localtonet" -ErrorAction SilentlyContinue)) {
+              Write-Host "$(Get-Date): Localtonet dropped! Restarting..." -ForegroundColor Yellow
+              Start-Process -FilePath "C:\Localtonet\localtonet.exe" -ArgumentList "authtoken TxkeEqUbcY1y3WOB4ZGls82NHoXPArj0D" -WindowStyle Hidden
+            }
+
+            # Ngrok চেক করবে
+            if (-not (Get-Process -Name "ngrok" -ErrorAction SilentlyContinue)) {
+              Write-Host "$(Get-Date): Ngrok dropped! Restarting..." -ForegroundColor Yellow
+              Start-Process -FilePath ".\ngrok.exe" -ArgumentList "tcp 3389" -WindowStyle Hidden
+            }
+
+            # প্রতি ৩০ সেকেন্ড পর পর চেক করবে
+            Start-Sleep -Seconds 30
           }
